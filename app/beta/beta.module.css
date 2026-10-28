@@ -1,0 +1,12 @@
+.guide { width: min(780px, calc(100% - 40px)); margin: 0 auto; padding: 36px 0 64px; color: #bed0db; font-size: 16px; line-height: 1.8; }
+.back { color: #90dece; text-decoration: underline; text-underline-offset: 4px; }
+.eyebrow { margin-top: 48px; color: #85aea9; font-family: var(--font-geist-mono), monospace; font-size: 11px; letter-spacing: .13em; }
+.guide h1 { color: #e4f4ee; font-size: clamp(36px, 7vw, 54px); line-height: 1.15; letter-spacing: -.045em; margin: 16px 0 24px; font-weight: 600; }
+.intro { font-size: 19px; color: #a6c3c6; }
+.guide section { border-top: 1px solid #29404a; margin-top: 34px; padding-top: 28px; }
+.guide h2 { font-size: 24px; font-weight: 600; line-height: 1.3; color: #d7eae7; margin: 0 0 16px; }
+.guide p + p { margin-top: 16px; }
+.guide ol { padding-left: 25px; list-style: decimal; margin-bottom: 18px; }
+.guide li + li { margin-top: 10px; }
+.guide a:focus-visible { outline: 2px solid #8ce3cd; outline-offset: 5px; }
+.start { display: inline-block; border: 1px solid #8adbc7; border-radius: 7px; background: #8adbc7; color: #102926; padding: 12px 18px; margin-top: 36px; font-weight: 600; }

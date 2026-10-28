@@ -1,0 +1,32 @@
+import { defineCase } from './case-content';
+const sources = [{ title: 'Kubernetes Deployment rollout behavior', url: 'https://kubernetes.io/docs/concepts/workloads/controllers/deployment/' }];
+export const ROLLOUT_SCENARIO = defineCase({
+  id: 'rollout-quota', title: 'The old version stays available', summary: 'Trace Deployment progress down to ReplicaSet events.', difficulty: 'Intermediate',
+  context: 'Two old API pods continue serving while a rollout makes no visible progress.', initialEvidence: 'Deployment api: desired 2; updated 0; available 2\nRollout reports no progress.',
+  hints: ['Inspect the new ReplicaSet creation event, not only the Deployment summary.', 'Compare rollout surge policy with namespace pod quota usage.', 'The rollout needs a third pod but quota allows only two; the new ReplicaSet reports exceeded quota.'],
+  checks: [
+    ['strategy', 'Read rollout strategy', 'kubectl get deployment api -n practice -o yaml', 'spec:\n  replicas: 2\n  strategy:\n    type: RollingUpdate\n    rollingUpdate: {maxSurge: 1, maxUnavailable: 0}\nstatus: {updatedReplicas: 0, availableReplicas: 2}', 'The old pods stay available while the rollout tries to create a surge pod.'],
+    ['replicaset', 'Read new ReplicaSet events', 'kubectl describe replicaset api-new -n practice', 'Desired Replicas: 1\nCurrent Replicas: 0\nWarning FailedCreate: pods "api-new-" is forbidden: exceeded quota: pod-budget, requested: pods=1, used: pods=2, limited: pods=2', 'Admission rejects pod creation before scheduling or image pulling.'],
+    ['quota', 'Read namespace quota', 'kubectl get resourcequota pod-budget -n practice -o yaml', 'status:\n  hard: {pods: "2"}\n  used: {pods: "2"}', 'There is no quota room for the requested surge pod.'],
+  ], choices: [
+    ['surge-quota', 'Pod quota blocks the extra pod required by this rollout policy', 'The strategy requests a surge pod and the new ReplicaSet creation is rejected at the exact pods quota.'],
+    ['image-auth', 'Registry authentication prevents the new pod from starting', 'No new pod is created; the failure is admission quota before any image pull could begin.'],
+    ['old-crash', 'Both old pods are unavailable', 'The Deployment reports two available old replicas; the new ReplicaSet cannot create its replacement.'],
+  ], correctHypothesisId: 'surge-quota',
+  debrief: { cause: 'The namespace pod quota is full while the zero-unavailable rollout requires a surge pod.', evidence: ['maxSurge=1 and maxUnavailable=0 require temporary extra capacity.', 'FailedCreate explicitly reports the exhausted pods quota.'], counterEvidence: ['A stalled rollout does not by itself identify application health or image problems.'], remediation: ['Coordinate a justified quota increase or a reviewed rollout strategy change, considering capacity and availability requirements. Do not delete healthy replicas merely to force progress.'], verification: ['Confirm the new ReplicaSet creates pods, they become ready, the expected revision finishes, and service availability is maintained.'], lesson: 'Follow controller ownership until the concrete failing operation is visible.' }, sources: [...sources, { title: 'Kubernetes ResourceQuotas', url: 'https://kubernetes.io/docs/concepts/policy/resource-quotas/' }],
+});
+export const ROLLOUT_VARIANT = defineCase({
+  id: 'rollout-paused-variant', variantOf: 'rollout-quota', title: 'The image changed but the revision did not', summary: 'Inspect control state and capacity separately.', difficulty: 'Intermediate',
+  context: 'The release manager updated the desired image, but serving pods still use the previous image.', initialEvidence: 'Deployment api: desired image release-43; existing pods still run release-42.',
+  hints: ['Inspect rollout control state before investigating resource scarcity.', 'Compare spec.paused, ReplicaSet history, and quota headroom.', 'The Deployment is paused, only the previous ReplicaSet exists, and quota has spare capacity.'],
+  checks: [
+    ['deployment', 'Read rollout control state', 'kubectl get deployment api -n practice -o yaml', 'spec:\n  paused: true\n  replicas: 2\n  template:\n    spec:\n      containers: [{name: api, image: registry.example.invalid/api:release-43}]', 'A paused Deployment does not roll out template updates until resumed.'],
+    ['history', 'Read ReplicaSet history', 'kubectl get replicasets -n practice -l app=api -o wide', 'NAME     DESIRED CURRENT READY IMAGE\napi-old  2       2       2     registry.example.invalid/api:release-42\n# Complete matching list; no new ReplicaSet.', 'The existing serving revision remains while the template change is paused.'],
+    ['quota', 'Read pod quota headroom', 'kubectl get resourcequota pod-budget -n practice -o yaml', 'status:\n  hard: {pods: "10"}\n  used: {pods: "2"}', 'The provided quota has headroom; there is no FailedCreate event in the supplied record.'],
+  ], choices: [
+    ['surge-quota', 'Namespace pod quota prevents a new replica', 'Quota usage is 2 of 10, whereas spec.paused is explicitly true and no new ReplicaSet was created.'],
+    ['paused-rollout', 'The template change is waiting because the Deployment is paused', 'The Deployment is paused and existing replicas retain the prior template, which matches the documented paused behavior.'],
+    ['bad-image', 'The new image has already crashed', 'No ReplicaSet or pod for release-43 has been created, so no startup failure for that image is evidenced.'],
+  ], correctHypothesisId: 'paused-rollout',
+  debrief: { cause: 'The changed pod template has not rolled out because the Deployment is paused.', evidence: ['spec.paused is true.', 'Only the old ReplicaSet exists and quota has headroom.'], counterEvidence: ['Resuming may reveal later image or health failures; none has been tested yet.'], remediation: ['Confirm why the release was paused, review the queued changes, and resume only when the release owner intends to proceed.'], verification: ['After an intended resume, verify the new revision, readiness, functional behavior, and rollback readiness.'], lesson: 'Differentiate intentional control state from a failed attempt.' }, sources,
+});

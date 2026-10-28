@@ -1,0 +1,17 @@
+name: Case review
+description: Report a case whose evidence, answer or debrief is wrong or misleading
+labels: [content]
+body:
+  - type: input
+    id: case
+    attributes:
+      label: Case
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What's wrong
+      description: Which evidence, option, hint or debrief step, and why. Link Kubernetes docs if you can.
+    validations:
+      required: true

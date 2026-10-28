@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+:root {
+  --background: #080b11;
+  --foreground: #e4e7ec;
+}
+
+body {
+  background-color: #080b11;
+  color: #e4e7ec;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  min-height: 100vh;
+}
+
+/* Custom scrollbar for terminals and evidence boxes */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.4);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.5);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.8);
+}

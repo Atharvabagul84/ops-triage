@@ -1,0 +1,23 @@
+name: Bug report
+description: Something doesn't work as documented
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: case
+    attributes:
+      label: Case (if any)
+      placeholder: e.g. OOMKilled transfer case
+  - type: textarea
+    id: env
+    attributes:
+      label: Browser and device
+      description: Browser, version, OS. Don't paste notebook contents you consider private.
+    validations:
+      required: true

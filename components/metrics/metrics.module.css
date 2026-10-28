@@ -1,0 +1,8 @@
+.panel { border: 1px solid #2b4144; border-radius: 12px; padding: 16px 20px; color: #b6c7c9; background: #102025; margin-top: 18px; }
+.panel summary { cursor: pointer; color: #edf5f4; font-weight: 600; }
+.panel summary span { color: #9bacaf; font-weight: 400; margin-left: 10px; }
+.panel p { max-width: 850px; font-size: 13px; line-height: 1.7; margin-top: 12px; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.actions button { min-height: 44px; border: 1px solid #517173; border-radius: 8px; padding: 9px 14px; color: #eefaf7; background: #183333; cursor: pointer; }
+.actions button:disabled { opacity: .55; cursor: default; }
+.panel :focus-visible { outline: 3px solid #7ce4cb; outline-offset: 4px; }
