@@ -11,7 +11,10 @@
     "test": "node --test tests/*.test.mjs components/practice/*.test.mjs",
     "test:beta": "node tests/beta-http.mjs",
     "test:e2e": "playwright test",
-    "test:performance": "node scripts/performance-budget.mjs"
+    "test:performance": "node scripts/performance-budget.mjs",
+    "labs:up": "kind create cluster --name ops-triage-labs --image kindest/node:v1.36.4@sha256:099e049362a1526b2db71494e1947aae99bd16290d7c895f2b7ea312e3cbfaed",
+    "labs:capture": "node labs/capture.mjs",
+    "labs:down": "kind delete cluster --name ops-triage-labs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.2",

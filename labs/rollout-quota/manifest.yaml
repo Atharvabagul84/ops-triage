@@ -1,0 +1,40 @@
+# Lab for case "rollout-quota": a zero-unavailable rollout needs a surge pod, but the
+# namespace pod quota is already full. The lab script then changes the pod template.
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pod-budget
+  namespace: practice
+spec:
+  hard:
+    pods: "2"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: practice
+  labels:
+    app: api
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          image: busybox:1.37.0@sha256:a7dbc319b1438115a207e11930dc4bb3e643dcb3ec0bdd694bb36cd8fad289ec
+          command: ["sleep", "3600"]
+          env:
+            - name: RELEASE
+              value: "42"

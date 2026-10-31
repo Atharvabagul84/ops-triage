@@ -1,0 +1,33 @@
+# Lab for case "readiness-port": the server listens on 8080, but readiness probes 9090.
+# Liveness still targets 8080, so the container keeps running without restarts.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: frontend
+  namespace: practice
+  labels:
+    app: frontend
+spec:
+  containers:
+    - name: frontend
+      image: busybox:1.37.0@sha256:a7dbc319b1438115a207e11930dc4bb3e643dcb3ec0bdd694bb36cd8fad289ec
+      command:
+        - sh
+        - -c
+        - |
+          mkdir -p /www && echo ok > /www/ready && echo ok > /www/live
+          echo "frontend: serving /ready and /live on 0.0.0.0:8080"
+          exec httpd -f -v -p 8080 -h /www
+      ports:
+        - name: http
+          containerPort: 8080
+      readinessProbe:
+        httpGet:
+          path: /ready
+          port: 9090
+        periodSeconds: 5
+      livenessProbe:
+        httpGet:
+          path: /live
+          port: 8080
+        periodSeconds: 10
