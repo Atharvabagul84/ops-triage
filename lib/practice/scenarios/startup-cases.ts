@@ -1,14 +1,15 @@
-import { defineCase } from './case-content';
+import { defineCase, labCapture } from './case-content';
 
 const sources = [{ title: 'Kubernetes debugging Pods', url: 'https://kubernetes.io/docs/tasks/debug/debug-application/debug-pods/' }];
 export const STARTUP_SCENARIO = defineCase({
   id: 'startup-arguments', title: 'A worker exits before serving', summary: 'Use previous logs to investigate a crash loop.', difficulty: 'Beginner',
-  context: 'A new worker release repeatedly exits during startup.', initialEvidence: 'Namespace practice; pod queue-worker: CrashLoopBackOff, 6 restarts.',
+  lab: labCapture('startup-arguments'),
+  context: 'A new worker release repeatedly exits during startup.', initialEvidence: '$ kubectl get pod queue-worker -n practice\nNAME           READY   STATUS             RESTARTS      AGE\nqueue-worker   0/1     CrashLoopBackOff   4 (71s ago)   2m44s',
   hints: ['Check the previous process output and recorded exit, not only the current waiting state.', 'Compare the rejected startup option with the deployed arguments.', 'The program rejects --batch-sze, and the pod manifest contains that misspelling.'],
   checks: [
-    ['termination', 'Inspect previous exit', 'kubectl describe pod queue-worker -n practice', 'Last State: Terminated; Reason: Error; Exit Code: 2\nState: Waiting; Reason: CrashLoopBackOff', 'Exit 2 is application-specific; its logs establish what it means here.'],
+    ['termination', 'Inspect previous exit', 'kubectl describe pod queue-worker -n practice', 'Containers:\n  worker:\n    State:          Waiting\n      Reason:       CrashLoopBackOff\n    Last State:     Terminated\n      Reason:       Error\n      Exit Code:    2\n    Restart Count:  4', 'Exit 2 is application-specific; its logs establish what it means here.'],
     ['logs', 'Read previous process logs', 'kubectl logs queue-worker -n practice --previous', 'error: unknown option --batch-sze\nusage: worker --batch-size <integer>\nExiting before initialization.', 'The startup parser rejects an option before initialization.'],
-    ['arguments', 'Inspect deployed arguments', 'kubectl get pod queue-worker -n practice -o yaml', 'containers:\n- name: worker\n  args: [--batch-sze, "100"]', 'The actual configuration contains the rejected option.'],
+    ['arguments', 'Inspect deployed arguments', 'kubectl get pod queue-worker -n practice -o yaml', 'spec:\n  containers:\n  - args:\n    - --batch-sze\n    - "100"\n    name: worker', 'The actual configuration contains the rejected option.'],
   ], choices: [
     ['bad-argument', 'A misspelled startup argument makes the application exit', 'The previous logs reject --batch-sze and the deployed arguments contain that exact option.'],
     ['oom', 'The memory limit killed the worker', 'The recorded reason is Error with a parser message, not OOMKilled; no memory exhaustion is shown.'],

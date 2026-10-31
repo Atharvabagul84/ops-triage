@@ -18,7 +18,7 @@ export const startOomCase = async (page: Page) => {
 
 export const citeOomEvidence = async (page: Page) => {
   for (const label of ['Inspect the previous termination', 'Inspect memory settings']) {
-    await page.getByRole('button', { name: `Reveal simulated output: ${label}`, exact: true }).click();
+    await page.getByRole('button', { name: `Reveal captured output: ${label}`, exact: true }).click();
     await page.getByRole('checkbox', { name: `Cite this check in my diagnosis — ${label}`, exact: true }).check();
   }
 };

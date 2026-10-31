@@ -1,4 +1,7 @@
 import type { PracticeScenario } from '../../types/practice';
+import { briefIntro, labCapture } from './scenarios/case-content';
+
+const lab = labCapture('oomkilled');
 
 export const OOM_SCENARIO: PracticeScenario = {
   id: 'oomkilled',
@@ -8,25 +11,26 @@ export const OOM_SCENARIO: PracticeScenario = {
   summary: 'Distinguish a restart symptom from a confirmed termination reason.',
   difficulty: 'Beginner',
   estimatedMinutes: 6,
-  brief: 'Synthetic practice case. The report worker restarts during batch processing. All outputs are simulated excerpts; no command runs against a cluster. Determine the supported failure mechanism without guessing the underlying application bug.',
-  initialEvidence: 'Namespace: practice\nPod: report-worker-7c8d9\nREADY  STATUS            RESTARTS\n0/1    CrashLoopBackOff  5\nReport jobs are delayed.',
+  lab,
+  brief: `${briefIntro(lab)} The report worker restarts during batch processing and report jobs are delayed. Determine the supported failure mechanism without guessing the underlying application bug.`,
+  initialEvidence: '$ kubectl get pod report-worker -n practice\nNAME            READY   STATUS             RESTARTS      AGE\nreport-worker   0/1     CrashLoopBackOff   4 (74s ago)   3m',
   diagnostics: [
     {
       id: 'termination', label: 'Inspect the previous termination',
-      command: 'kubectl describe pod report-worker-7c8d9 -n practice',
-      output: 'Container: worker\nState: Waiting\n  Reason: CrashLoopBackOff\nLast State: Terminated\n  Reason: OOMKilled\n  Exit Code: 137\nRestart Count: 5\nEvents: Back-off restarting failed container worker',
-      explanation: 'OOMKilled is a recorded termination reason. CrashLoopBackOff describes restart backoff, and exit 137 by itself would not prove an OOM kill.',
+      command: 'kubectl describe pod report-worker -n practice',
+      output: 'Containers:\n  worker:\n    State:          Waiting\n      Reason:       CrashLoopBackOff\n    Last State:     Terminated\n      Reason:       OOMKilled\n      Exit Code:    137\n    Restart Count:  4\nEvents:\n  Type     Reason     Age                  From               Message\n  Warning  BackOff    4s (x5 over 2m52s)   kubelet            spec.containers{worker}: Back-off restarting failed container worker in pod report-worker_practice(821e6ffa-87de-4439-bd36-286f6bf13b86)',
+      explanation: 'OOMKilled is the recorded reason in Last State. CrashLoopBackOff only describes restart backoff, exit 137 by itself would not prove an OOM kill, and the Events list shows the back-off rather than the kill.',
     },
     {
       id: 'resources', label: 'Inspect memory settings',
-      command: "kubectl get pod report-worker-7c8d9 -n practice -o jsonpath='{.spec.containers[0].resources}'",
-      output: '{"limits":{"memory":"256Mi","cpu":"500m"},"requests":{"memory":"128Mi","cpu":"100m"}}',
+      command: "kubectl get pod report-worker -n practice -o 'jsonpath={.spec.containers[0].resources}'",
+      output: '{"limits":{"cpu":"500m","memory":"256Mi"},"requests":{"cpu":"100m","memory":"128Mi"}}',
       explanation: 'The worker has a 256Mi memory limit. Combine this configuration with the termination reason; the limit alone does not prove a memory leak or measure the peak.',
     },
     {
       id: 'node-health', label: 'Check node pressure',
-      command: 'kubectl describe node practice-node-1',
-      output: 'Conditions:\n  Ready           True\n  MemoryPressure  False\n  DiskPressure    False\nEvents: <none>',
+      command: 'kubectl describe node ops-triage-labs-control-plane',
+      output: 'Name:               ops-triage-labs-control-plane\nConditions:\n  Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message\n  ----             ------  -----------------                 ------------------                ------                       -------\n  MemoryPressure   False   Sat, 31 Oct 2026 18:08:49 +0530   Sat, 31 Oct 2026 18:07:02 +0530   KubeletHasSufficientMemory   kubelet has sufficient memory available\n  DiskPressure     False   Sat, 31 Oct 2026 18:08:49 +0530   Sat, 31 Oct 2026 18:07:02 +0530   KubeletHasNoDiskPressure     kubelet has no disk pressure\n  PIDPressure      False   Sat, 31 Oct 2026 18:08:49 +0530   Sat, 31 Oct 2026 18:07:02 +0530   KubeletHasSufficientPID      kubelet has sufficient PID available\n  Ready            True    Sat, 31 Oct 2026 18:08:49 +0530   Sat, 31 Oct 2026 18:07:49 +0530   KubeletReady                 kubelet is posting ready status',
       explanation: 'There is no current node-pressure signal in this excerpt. This weakens the node-wide pressure theory but does not rule out a transient condition at the time of the kill.',
     },
   ],

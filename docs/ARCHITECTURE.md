@@ -29,6 +29,7 @@ ops-triage/
 │ ├ cloud/             # Supabase auth and explicit notebook sync
 │ └ metrics/           # Consent and allowlisted events
 ├ types/               # Domain contracts
+├ labs/                # kind manifests, capture script and committed captures for 5 cases
 ├ supabase/            # Migrations and SQL tests
 ├ scripts/             # Static build, headers, performance budget
 ├ tests/               # Unit, content, HTTP smoke and e2e (Playwright) tests
@@ -36,7 +37,7 @@ ops-triage/
 ```
 
 ## 04 Data Flow
-1. The learner opens a case; evidence, hints and feedback come from the bundled scenario data
+1. The learner opens a case; evidence, hints and feedback come from the bundled scenario data (five cases quote real output captured by `labs/capture.mjs` on kind; `tests/labs.test.mjs` keeps them in sync)
 2. Revealing, citing and writing update a draft in the on-device notebook
 3. Submitting stores an immutable answer snapshot and shows option-specific feedback and the debrief
 4. Export/import moves the notebook as JSON; nothing leaves the device unless the learner signs in and chooses to upload

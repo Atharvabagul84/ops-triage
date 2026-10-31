@@ -10,9 +10,11 @@
 - [Release checklist](guides/release-checklist.md): what to verify before publishing a build
 
 ## Reference
+- [Kind labs](../labs/README.md): reproduce five case faults on kind and capture their real kubectl output
 - [Project notes](reference/project-notes.md): what the beta includes, run and test commands, data boundaries, module map
 
 ## Decisions
 - [0001 Static export with no server or model](decisions/0001-static-export.md)
 - [0002 Guest-first, on-device notebooks](decisions/0002-guest-first-storage.md)
 - [0003 Evidence citation instead of automatic grading](decisions/0003-no-automatic-grading.md)
+- [0004 Real kind captures for five core cases](decisions/0004-kind-captured-evidence.md)

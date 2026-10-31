@@ -16,6 +16,8 @@ export interface PracticeScenario {
   difficulty: 'Beginner' | 'Intermediate';
   estimatedMinutes: number;
   brief: string;
+  /** Set when the evidence is excerpted from a real kind capture in labs/<id>/capture.json. */
+  lab?: { path: string; kubernetesVersion: string };
   initialEvidence: string;
   diagnostics: PracticeDiagnostic[];
   hypotheses: { id: string; label: string; feedback: string }[];

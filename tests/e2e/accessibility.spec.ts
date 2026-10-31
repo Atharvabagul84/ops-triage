@@ -20,7 +20,7 @@ test('keyboard users can use the skip link and activate a diagnostic disclosure'
   await page.keyboard.press('Enter');
   await expect(page.getByRole('main')).toBeFocused();
   await startOomCase(page);
-  const disclosure = page.getByRole('button', { name: 'Reveal simulated output: Inspect the previous termination', exact: true });
+  const disclosure = page.getByRole('button', { name: 'Reveal captured output: Inspect the previous termination', exact: true });
   await disclosure.focus();
   await page.keyboard.press('Enter');
   const citation = page.getByRole('checkbox', { name: 'Cite this check in my diagnosis — Inspect the previous termination', exact: true });

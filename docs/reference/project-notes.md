@@ -3,6 +3,7 @@
 ## What the beta includes
 
 - Ten core incidents plus ten transfer cases with a different cause: memory termination, Service routing, image pulls, application restarts, scheduling, readiness, DNS, ConfigMaps, storage, and rollout admission.
+- Five core cases (OOM, startup flag, DNS, readiness, rollout quota) quote real kubectl output captured from a kind cluster; see `labs/README.md`. The rest is authored and marked simulated.
 - Diagnostic evidence, explicit citations, written reasoning, progressive hints, and feedback for each hypothesis.
 - Submitted answer snapshots. Editing a draft does not change the last assessed result.
 - Debriefs with supporting facts, counter-evidence, remediation, verification, and Kubernetes documentation.
@@ -77,6 +78,7 @@ Saving pauses if another tab changes the stored notebook or saved data cannot be
 - `lib/practice/`: versioned synthetic scenarios, evaluation, validated notebook handling, export.
 - `components/account/`, `lib/cloud/`: optional authentication and explicit notebook sync.
 - `components/metrics/`, `lib/metrics/`: consent and allowlisted event payloads.
+- `labs/`: kind fault manifests, guarded capture script and committed captures for the five lab-backed cases.
 - `supabase/`: versioned schema and authorization checks.
 - `tests/`: domain behavior, catalogue invariants and HTTP smoke checks.
 

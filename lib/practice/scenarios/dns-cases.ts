@@ -1,14 +1,15 @@
-import { defineCase } from './case-content';
+import { defineCase, labCapture } from './case-content';
 const sources = [{ title: 'Kubernetes DNS troubleshooting', url: 'https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/' }];
 export const DNS_SCENARIO = defineCase({
   id: 'dns-config', title: 'Only one client cannot resolve Services', summary: 'Check the client resolver before blaming CoreDNS.', difficulty: 'Intermediate',
-  context: 'A reviewed diagnostic capture contains lookups from the affected client and a known-good client. The workload uses a custom DNS policy.',
-  initialEvidence: 'client-custom cannot resolve inventory.practice.svc.cluster.local; client-default succeeds.',
-  hints: ['Compare the same lookup from an affected and unaffected client.', 'Read the affected pod DNS policy and resolver configuration.', 'dnsPolicy=None sends the client to 192.0.2.53; the supplied direct query to cluster DNS succeeds.'],
+  lab: labCapture('dns-config'),
+  context: 'Lookups of inventory.practice.svc.cluster.local fail from client-custom, which uses a custom DNS policy. The initial evidence is the same lookup from client-default in the same namespace.',
+  initialEvidence: '$ kubectl exec client-default -n practice -- nslookup inventory.practice.svc.cluster.local\nServer:\t\t10.96.0.10\nAddress:\t10.96.0.10:53\nName:\tinventory.practice.svc.cluster.local\nAddress: 10.96.95.111',
+  hints: ['Compare the same lookup from an affected and unaffected client.', 'Read the affected pod DNS policy and resolver configuration.', 'dnsPolicy=None sends the client to the public resolver 8.8.8.8, which has no cluster zone; the direct query to cluster DNS succeeds.'],
   checks: [
-    ['pod-dns', 'Inspect pod DNS configuration', 'kubectl get pod client-custom -n practice -o yaml', 'dnsPolicy: None\ndnsConfig:\n  nameservers: [192.0.2.53]', 'A custom nameserver replaces normal cluster resolver configuration in this case.'],
-    ['lookup', 'Read sanitized DNS diagnostic capture', 'Review client DNS diagnostic capture (not a shell command)', 'Affected client default lookup: inventory.practice.svc.cluster.local -> NXDOMAIN\nSame client querying 10.96.0.10 directly -> 10.96.20.15\nKnown-good client default lookup -> 10.96.20.15', 'The same name resolves using cluster DNS, narrowing the fault to the affected resolver path.'],
-    ['dns-service', 'Read cluster DNS Service address', 'kubectl get service kube-dns -n kube-system', 'NAME kube-dns\nCLUSTER-IP 10.96.0.10\nPORTS 53/UDP,53/TCP', 'The successful direct query used the actual cluster DNS address.'],
+    ['pod-dns', 'Inspect pod DNS configuration', 'kubectl get pod client-custom -n practice -o yaml', 'spec:\n  dnsConfig:\n    nameservers:\n    - 8.8.8.8\n  dnsPolicy: None', 'A custom nameserver replaces normal cluster resolver configuration in this case.'],
+    ['lookup', 'Compare default and direct lookups from the affected client', "kubectl exec client-custom -n practice -- sh -c 'nslookup inventory.practice.svc.cluster.local; nslookup inventory.practice.svc.cluster.local 10.96.0.10'", 'Server:\t\t8.8.8.8\nAddress:\t8.8.8.8:53\n\n** server can\'t find inventory.practice.svc.cluster.local: NXDOMAIN\n\n** server can\'t find inventory.practice.svc.cluster.local: NXDOMAIN\n\nServer:\t\t10.96.0.10\nAddress:\t10.96.0.10:53\n\n\nName:\tinventory.practice.svc.cluster.local\nAddress: 10.96.95.111', 'The default path asks 8.8.8.8 and gets NXDOMAIN for both the A and AAAA queries. The same client asking 10.96.0.10 directly gets the Service address, narrowing the fault to the affected resolver path.'],
+    ['dns-service', 'Read cluster DNS Service address', 'kubectl get service kube-dns -n kube-system', 'NAME       TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)                  AGE\nkube-dns   ClusterIP   10.96.0.10   <none>        53/UDP,53/TCP,9153/TCP   89s', 'The successful direct query used the actual cluster DNS address.'],
   ], choices: [
     ['wrong-resolver', 'The custom client resolver does not resolve cluster names', 'The custom resolver fails the name while querying cluster DNS from the same client succeeds.'],
     ['coredns-down', 'CoreDNS is unavailable cluster-wide', 'Direct queries to cluster DNS succeed from the affected client and normal resolution works from another pod.'],

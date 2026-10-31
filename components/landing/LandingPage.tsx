@@ -31,19 +31,19 @@ export const LandingPage = () => {
             <div className={styles.heroFacts}><span><strong>{coreCount}</strong> core cases</span><span><strong>{transferCount}</strong> transfer cases</span><span><strong>Your</strong> practice notebook</span></div>
           </div>
           <figure className={styles.investigationPreview}>
-            <div className={styles.previewBar}><span><i /><i /><i /></span><p>practice / report-worker</p><b>SIMULATED</b></div>
+            <div className={styles.previewBar}><span><i /><i /><i /></span><p>practice / report-worker</p><b>KIND CAPTURE</b></div>
             <div className={styles.previewBody}>
               <p className={styles.previewEyebrow}>A FIRST LOOK AT THE INCIDENT</p>
               <h2>The worker keeps restarting.</h2>
               <p className={styles.previewDescription}>The jobs are delayed. The restart count is climbing. Where would you look next?</p>
-              <div className={styles.logLabel}><span>Initial evidence</span><span>AUTHORED EXCERPT</span></div>
-              <pre className={styles.log}>{'Namespace: practice\nPod: report-worker-7c8d9\n\nREADY  STATUS            RESTARTS\n0/1    CrashLoopBackOff   5'}</pre>
+              <div className={styles.logLabel}><span>Initial evidence</span><span>REAL KUBECTL OUTPUT</span></div>
+              <pre className={styles.log}>{'$ kubectl get pod report-worker -n practice\nNAME            READY   STATUS             RESTARTS      AGE\nreport-worker   0/1     CrashLoopBackOff   4 (74s ago)   3m'}</pre>
               <div className={styles.nextCheck}><span className={styles.checkIcon} aria-hidden="true">⌕</span><div><strong>Inspect the previous termination</strong><p>A restart is a symptom. Find the evidence behind it.</p></div><span aria-hidden="true">↗</span></div>
             </div>
-            <figcaption>An example investigation. Commands are displayed as learning material; nothing is executed.</figcaption>
+            <figcaption>An example investigation. Its evidence was captured from a disposable kind cluster; nothing runs from this page.</figcaption>
           </figure>
         </section>
-        <div className={styles.boundaryStrip}><p><span aria-hidden="true">◇</span> Authored evidence, with links to Kubernetes documentation.</p><p><span aria-hidden="true">◇</span> Guest practice stays on your device.</p><p><span aria-hidden="true">◇</span> Written reasoning needs human review.</p></div>
+        <div className={styles.boundaryStrip}><p><span aria-hidden="true">◇</span> Authored cases, five reproduced on kind, with links to Kubernetes documentation.</p><p><span aria-hidden="true">◇</span> Guest practice stays on your device.</p><p><span aria-hidden="true">◇</span> Written reasoning needs human review.</p></div>
         <section id="how-it-works" className={styles.section} aria-labelledby="method-title">
           <div className={styles.sectionHeading}><div><p className={styles.eyebrow}>THE INVESTIGATION LOOP</p><h2 id="method-title">A little structure<br />for a messy moment.</h2></div><p>For individual DevOps engineers and learners who want to practice the steps of an investigation.</p></div>
           <div className={styles.steps}>{learningSteps.map((step) => <article key={step.number}><span className={styles.stepNumber}>{step.number}</span><h3>{step.title}</h3><p>{step.description}</p></article>)}</div>

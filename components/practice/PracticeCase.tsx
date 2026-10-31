@@ -27,7 +27,7 @@ export const PracticeCase = ({ scenario, attempt, runNumber, relatedScenario, ca
       <button className={styles.textButton} onClick={onBack}><span aria-hidden="true">←</span> Back to case library</button>
       <div className={styles.caseHeading}>
         <div><p className={styles.eyebrow}>{scenario.variantOf ? 'TRANSFER PRACTICE' : 'GUIDED INVESTIGATION'} / RUN {runNumber}</p><h1>{scenario.title}</h1></div>
-        <span className={styles.tag}>Simulated case <span aria-hidden="true">·</span> {scenario.estimatedMinutes} min</span>
+        <span className={styles.tag}>{scenario.lab ? 'Reproduced on kind' : 'Simulated case'} <span aria-hidden="true">·</span> {scenario.estimatedMinutes} min</span>
       </div>
       {hasUnsavedDraft && <div className={styles.unsavedDraft}><p>These draft edits are kept in this tab only. Saved answer history has not changed.</p><button className={styles.secondaryButton} onClick={() => onSave(attempt)}>Retry saving draft</button></div>}
       <div className={styles.caseLayout}>
@@ -35,7 +35,7 @@ export const PracticeCase = ({ scenario, attempt, runNumber, relatedScenario, ca
           <section className={styles.panel} aria-labelledby="incident-brief-title">
             <p className={styles.eyebrow}>01 / ORIENT</p><h2 id="incident-brief-title">The incident brief</h2>
             <p className={styles.brief}>{scenario.brief}</p>
-            <div className={styles.terminalHeader}><span>Initial evidence</span><span>SIMULATED</span></div>
+            <div className={styles.terminalHeader}><span>Initial evidence</span><span>{scenario.lab ? 'KIND CAPTURE' : 'SIMULATED'}</span></div>
             <pre className={styles.terminal}>{scenario.initialEvidence}</pre>
           </section>
           <PracticeDiagnostics scenario={scenario} attempt={attempt} onUpdate={updateDraft} />
