@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+- Kind labs (`labs/`) that reproduce five core case faults (OOM kill, bad startup flag, DNS resolver override, readiness port, rollout quota), with a context guard and a Labs CI workflow.
+- `tests/labs.test.mjs`: lab-backed case evidence must match the committed kubectl captures line for line.
+
+### Changed
+- The five lab-backed cases quote real kind output and are labelled "KIND CAPTURE"; scenario versions and IDs are unchanged (ADR 0004).
+- `package.json` version aligned with the v1.0.0 release.
+
+### Removed
+- Unused create-next-app SVGs in `public/`.
+- The `@docs/HANDOFF.md` import from the public `CLAUDE.md` (the file is local-only; use a gitignored `CLAUDE.local.md`).
+
 ## [1.0.0] - 2026-10-28
 
 First public release. Earlier development history is kept in a private archive.

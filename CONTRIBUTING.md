@@ -21,7 +21,7 @@ npm run build:static && npm run test:performance
 CI also runs SQL ownership and revision tests against PostgreSQL 16. See the [release checklist](docs/guides/release-checklist.md).
 
 ## Adding or changing a case
-- Cases live in `lib/practice/scenarios/`. Each needs a version, diagnostic IDs, required evidence, three hints, option-specific feedback, official source links and a transfer case with a different root cause.
+- Cases live in `lib/practice/scenarios/`. Each needs a version, diagnostic IDs, required evidence, three hints, option-specific feedback, official source links and a transfer case with a different root cause. Lab-backed cases must quote `labs/<case-id>/capture.json` verbatim (see `labs/README.md`).
 - Every supported answer must be backed by evidence the learner can inspect and cite.
 - If evidence or answers change, bump the scenario version and plan the notebook migration.
 

@@ -1,0 +1,29 @@
+{
+  "caseId": "dns-config",
+  "fault": "A client with dnsPolicy: None and a public nameserver cannot resolve a cluster Service name.",
+  "capturedAt": "2026-10-31T12:38:42.870Z",
+  "kubernetesVersion": "v1.36.4",
+  "kubectlVersion": "v1.36.1",
+  "checks": [
+    {
+      "id": "pod-dns",
+      "command": "kubectl get pod client-custom -n practice -o yaml",
+      "output": "apiVersion: v1\nkind: Pod\nmetadata:\n  annotations:\n    kubectl.kubernetes.io/last-applied-configuration: |\n      {\"apiVersion\":\"v1\",\"kind\":\"Pod\",\"metadata\":{\"annotations\":{},\"name\":\"client-custom\",\"namespace\":\"practice\"},\"spec\":{\"containers\":[{\"command\":[\"sleep\",\"3600\"],\"image\":\"busybox:1.37.0@sha256:a7dbc319b1438115a207e11930dc4bb3e643dcb3ec0bdd694bb36cd8fad289ec\",\"name\":\"client\"}],\"dnsConfig\":{\"nameservers\":[\"8.8.8.8\"]},\"dnsPolicy\":\"None\"}}\n  creationTimestamp: \"2026-10-31T12:38:27Z\"\n  generation: 1\n  name: client-custom\n  namespace: practice\n  resourceVersion: \"636\"\n  uid: 0bffe6f8-6281-40f0-9af2-999fcce539c1\nspec:\n  containers:\n  - command:\n    - sleep\n    - \"3600\"\n    image: busybox:1.37.0@sha256:a7dbc319b1438115a207e11930dc4bb3e643dcb3ec0bdd694bb36cd8fad289ec\n    imagePullPolicy: IfNotPresent\n    name: client\n    resources: {}\n    terminationMessagePath: /dev/termination-log\n    terminationMessagePolicy: File\n    volumeMounts:\n    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount\n      name: kube-api-access-2dg22\n      readOnly: true\n  dnsConfig:\n    nameservers:\n    - 8.8.8.8\n  dnsPolicy: None\n  enableServiceLinks: true\n  nodeName: ops-triage-labs-control-plane\n  preemptionPolicy: PreemptLowerPriority\n  priority: 0\n  restartPolicy: Always\n  schedulerName: default-scheduler\n  securityContext: {}\n  serviceAccount: default\n  serviceAccountName: default\n  terminationGracePeriodSeconds: 30\n  tolerations:\n  - effect: NoExecute\n    key: node.kubernetes.io/not-ready\n    operator: Exists\n    tolerationSeconds: 300\n  - effect: NoExecute\n    key: node.kubernetes.io/unreachable\n    operator: Exists\n    tolerationSeconds: 300\n  volumes:\n  - name: kube-api-access-2dg22\n    projected:\n      defaultMode: 420\n      sources:\n      - serviceAccountToken:\n          expirationSeconds: 3607\n          path: token\n      - configMap:\n          items:\n          - key: ca.crt\n            path: ca.crt\n          name: kube-root-ca.crt\n      - downwardAPI:\n          items:\n          - fieldRef:\n              apiVersion: v1\n              fieldPath: metadata.namespace\n            path: namespace\nstatus:\n  conditions:\n  - lastProbeTime: null\n    lastTransitionTime: \"2026-10-31T12:38:28Z\"\n    observedGeneration: 1\n    status: \"True\"\n    type: PodReadyToStartContainers\n  - lastProbeTime: null\n    lastTransitionTime: \"2026-10-31T12:38:27Z\"\n    observedGeneration: 1\n    status: \"True\"\n    type: Initialized\n  - lastProbeTime: null\n    lastTransitionTime: \"2026-10-31T12:38:37Z\"\n    observedGeneration: 1\n    status: \"True\"\n    type: Ready\n  - lastProbeTime: null\n    lastTransitionTime: \"2026-10-31T12:38:37Z\"\n    observedGeneration: 1\n    status: \"True\"\n    type: ContainersReady\n  - lastProbeTime: null\n    lastTransitionTime: \"2026-10-31T12:38:27Z\"\n    observedGeneration: 1\n    status: \"True\"\n    type: PodScheduled\n  containerStatuses:\n  - containerID: containerd://60d0ae5bc2d253a4d1e519648ee8e1998c66248ada0a1c44a375e372369df8bf\n    image: sha256:30ecbe1509090b38ef3260f3609d64d8261230464eaa4d235901db496e9647fb\n    imageID: docker.io/library/busybox@sha256:a7dbc319b1438115a207e11930dc4bb3e643dcb3ec0bdd694bb36cd8fad289ec\n    lastState: {}\n    name: client\n    ready: true\n    resources: {}\n    restartCount: 0\n    started: true\n    state:\n      running:\n        startedAt: \"2026-10-31T12:38:37Z\"\n    user:\n      linux:\n        gid: 0\n        supplementalGroups:\n        - 0\n        - 10\n        uid: 0\n    volumeMounts:\n    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount\n      name: kube-api-access-2dg22\n      readOnly: true\n      recursiveReadOnly: Disabled\n  hostIP: 172.18.0.3\n  hostIPs:\n  - ip: 172.18.0.3\n  observedGeneration: 1\n  phase: Running\n  podIP: 10.244.0.6\n  podIPs:\n  - ip: 10.244.0.6\n  qosClass: BestEffort\n  resources: {}\n  startTime: \"2026-10-31T12:38:27Z\""
+    },
+    {
+      "id": "lookup",
+      "command": "kubectl exec client-custom -n practice -- sh -c 'nslookup inventory.practice.svc.cluster.local; nslookup inventory.practice.svc.cluster.local 10.96.0.10'",
+      "output": "Server:\t\t8.8.8.8\nAddress:\t8.8.8.8:53\n\n** server can't find inventory.practice.svc.cluster.local: NXDOMAIN\n\n** server can't find inventory.practice.svc.cluster.local: NXDOMAIN\n\nServer:\t\t10.96.0.10\nAddress:\t10.96.0.10:53\n\n\nName:\tinventory.practice.svc.cluster.local\nAddress: 10.96.95.111"
+    },
+    {
+      "id": "dns-service",
+      "command": "kubectl get service kube-dns -n kube-system",
+      "output": "NAME       TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)                  AGE\nkube-dns   ClusterIP   10.96.0.10   <none>        53/UDP,53/TCP,9153/TCP   89s"
+    },
+    {
+      "id": "client-default",
+      "command": "kubectl exec client-default -n practice -- nslookup inventory.practice.svc.cluster.local",
+      "output": "Server:\t\t10.96.0.10\nAddress:\t10.96.0.10:53\n\n\nName:\tinventory.practice.svc.cluster.local\nAddress: 10.96.95.111"
+    }
+  ]
+}

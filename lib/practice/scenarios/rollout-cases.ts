@@ -1,13 +1,14 @@
-import { defineCase } from './case-content';
+import { defineCase, labCapture } from './case-content';
 const sources = [{ title: 'Kubernetes Deployment rollout behavior', url: 'https://kubernetes.io/docs/concepts/workloads/controllers/deployment/' }];
 export const ROLLOUT_SCENARIO = defineCase({
   id: 'rollout-quota', title: 'The old version stays available', summary: 'Trace Deployment progress down to ReplicaSet events.', difficulty: 'Intermediate',
-  context: 'Two old API pods continue serving while a rollout makes no visible progress.', initialEvidence: 'Deployment api: desired 2; updated 0; available 2\nRollout reports no progress.',
+  lab: labCapture('rollout-quota'),
+  context: 'The api pod template changed from RELEASE 42 to 43. Two old API pods continue serving while the rollout makes no visible progress.', initialEvidence: '$ kubectl get deployment api -n practice\nNAME   READY   UP-TO-DATE   AVAILABLE   AGE\napi    2/2     0            2           6s',
   hints: ['Inspect the new ReplicaSet creation event, not only the Deployment summary.', 'Compare rollout surge policy with namespace pod quota usage.', 'The rollout needs a third pod but quota allows only two; the new ReplicaSet reports exceeded quota.'],
   checks: [
-    ['strategy', 'Read rollout strategy', 'kubectl get deployment api -n practice -o yaml', 'spec:\n  replicas: 2\n  strategy:\n    type: RollingUpdate\n    rollingUpdate: {maxSurge: 1, maxUnavailable: 0}\nstatus: {updatedReplicas: 0, availableReplicas: 2}', 'The old pods stay available while the rollout tries to create a surge pod.'],
-    ['replicaset', 'Read new ReplicaSet events', 'kubectl describe replicaset api-new -n practice', 'Desired Replicas: 1\nCurrent Replicas: 0\nWarning FailedCreate: pods "api-new-" is forbidden: exceeded quota: pod-budget, requested: pods=1, used: pods=2, limited: pods=2', 'Admission rejects pod creation before scheduling or image pulling.'],
-    ['quota', 'Read namespace quota', 'kubectl get resourcequota pod-budget -n practice -o yaml', 'status:\n  hard: {pods: "2"}\n  used: {pods: "2"}', 'There is no quota room for the requested surge pod.'],
+    ['strategy', 'Read rollout strategy', 'kubectl get deployment api -n practice -o yaml', 'spec:\n  replicas: 2\n  strategy:\n    rollingUpdate:\n      maxSurge: 1\n      maxUnavailable: 0\n    type: RollingUpdate\nstatus:\n  availableReplicas: 2\n    message: \'pods "api-8667b95994-6nfzp" is forbidden: exceeded quota: pod-budget,\n      requested: pods=1, used: pods=2, limited: pods=2\'\n    reason: FailedCreate\n    status: "True"\n    type: ReplicaFailure', 'The old pods stay available while the rollout tries to create a surge pod; the Deployment already surfaces a ReplicaFailure condition.'],
+    ['replicaset', 'Read new ReplicaSet events', 'kubectl describe replicaset api-8667b95994 -n practice', 'Name:           api-8667b95994\nControlled By:  Deployment/api\nReplicas:       0 current / 1 desired\nEvents:\n  Type     Reason        Age   From                   Message\n  Warning  FailedCreate  1s    replicaset-controller  Error creating: pods "api-8667b95994-6nfzp" is forbidden: exceeded quota: pod-budget, requested: pods=1, used: pods=2, limited: pods=2', 'Admission rejects pod creation before scheduling or image pulling.'],
+    ['quota', 'Read namespace quota', 'kubectl get resourcequota pod-budget -n practice -o yaml', 'spec:\n  hard:\n    pods: "2"\nstatus:\n  hard:\n    pods: "2"\n  used:\n    pods: "2"', 'There is no quota room for the requested surge pod.'],
   ], choices: [
     ['surge-quota', 'Pod quota blocks the extra pod required by this rollout policy', 'The strategy requests a surge pod and the new ReplicaSet creation is rejected at the exact pods quota.'],
     ['image-auth', 'Registry authentication prevents the new pod from starting', 'No new pod is created; the failure is admission quota before any image pull could begin.'],

@@ -1,0 +1,21 @@
+# Lab for case "oomkilled": a worker exceeds its 256Mi memory limit and is OOM-killed.
+# The container is a stand-in: `tail /dev/zero` buffers input until the cgroup limit is hit.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: report-worker
+  namespace: practice
+  labels:
+    app: report-worker
+spec:
+  containers:
+    - name: worker
+      image: busybox:1.37.0@sha256:a7dbc319b1438115a207e11930dc4bb3e643dcb3ec0bdd694bb36cd8fad289ec
+      command: ["sh", "-c", "echo report-worker: loading batch 2026-10 into memory; tail /dev/zero"]
+      resources:
+        requests:
+          memory: 128Mi
+          cpu: 100m
+        limits:
+          memory: 256Mi
+          cpu: 500m
